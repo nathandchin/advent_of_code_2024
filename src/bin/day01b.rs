@@ -17,7 +17,6 @@ fn main() -> Result<()> {
         let left: i64 = parts[0].parse()?;
         let right: i64 = parts[1].parse()?;
         lefts.push(left);
-
         rights.entry(right).and_modify(|o| *o += 1).or_insert(1);
     }
 

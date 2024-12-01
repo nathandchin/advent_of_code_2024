@@ -11,10 +11,8 @@ fn main() -> Result<()> {
 
     for line in input.lines() {
         let parts: Vec<_> = line.split_ascii_whitespace().collect();
-        let left: i64 = parts[0].parse()?;
-        let right: i64 = parts[1].parse()?;
-        lefts.push(left);
-        rights.push(right);
+        lefts.push(parts[0].parse::<i64>()?);
+        rights.push(parts[1].parse::<i64>()?);
     }
 
     lefts.sort();
@@ -23,8 +21,7 @@ fn main() -> Result<()> {
     let mut ans = 0;
 
     for (left, right) in lefts.into_iter().zip(rights) {
-        let dist = (left - right).abs();
-        ans += dist;
+        ans += (left - right).abs();
     }
 
     println!("{}", ans);
