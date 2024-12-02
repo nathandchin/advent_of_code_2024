@@ -23,7 +23,7 @@ fn main() -> Result<()> {
     let mut ans = 0;
 
     for left in lefts {
-        let sim = left * rights.get(&left).or(Some(&0)).unwrap();
+        let sim = left * rights.get(&left).unwrap_or(&0);
         ans += sim;
     }
 
