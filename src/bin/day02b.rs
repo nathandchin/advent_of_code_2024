@@ -2,7 +2,7 @@ use std::io::{stdin, Read};
 
 use color_eyre::Result;
 
-fn is_safe(levels: &[i32]) -> Option<usize> {
+fn get_problem_index(levels: &[i32]) -> Option<usize> {
     let mut is_increasing = None;
     for (idx, x) in levels.windows(2).enumerate() {
         let a = x[0];
@@ -24,43 +24,42 @@ fn is_safe(levels: &[i32]) -> Option<usize> {
     None
 }
 
+fn is_safe_dampened(levels: &mut Vec<i32>) -> bool {
+    if let Some(problem_idx) = get_problem_index(levels) {
+        // Try the index, the following index, and the start (in case of misjudged direction of change)
+        for i in [problem_idx, problem_idx + 1, 0] {
+            // Try removing
+            let elt = levels.remove(i);
+            // Test
+            let safe = get_problem_index(levels).is_none();
+
+            if safe {
+                return true;
+            }
+
+            // Restore for next check
+            levels.insert(i, elt);
+        }
+
+        false
+    } else {
+        true
+    }
+}
+
 fn main() -> Result<()> {
     let mut input = String::new();
     stdin().read_to_string(&mut input)?;
 
     let mut ans = 0;
     for line in input.lines() {
-        let levels: Vec<i32> = line
+        let mut levels: Vec<i32> = line
             .split_ascii_whitespace()
             .map(|o| o.parse::<i32>().unwrap())
             .collect();
 
-        if let Some(idx) = is_safe(&levels) {
-            println!("possible danger with {:?}", &levels);
-
-            let mut try_a = levels.clone();
-            try_a.remove(idx);
-            if is_safe(&try_a).is_none() {
-                ans += 1;
-                println!("qualified safe (1) {:?}", &try_a);
-            } else {
-                let mut try_b = levels.clone();
-                try_b.remove(idx + 1);
-                if is_safe(&try_b).is_none() {
-                    ans += 1;
-                    println!("qualified safe (2) {:?}", &try_b);
-                } else {
-                    let mut try_c = levels.clone();
-                    try_c.remove(0);
-                    if is_safe(&try_c).is_none() {
-                        ans += 1;
-                        println!("qualified safe (3) {:?}", &try_c);
-                    }
-                }
-            }
-        } else {
+        if is_safe_dampened(&mut levels) {
             ans += 1;
-            println!("safe {:?}", &levels);
         }
     }
 
