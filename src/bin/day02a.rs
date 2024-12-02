@@ -37,7 +37,6 @@ fn main() -> Result<()> {
 
         if is_safe(&levels) {
             ans += 1;
-            // dbg!(&levels);
         }
     }
 
