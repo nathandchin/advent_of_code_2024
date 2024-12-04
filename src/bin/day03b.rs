@@ -17,11 +17,9 @@ fn main() -> Result<()> {
             muls_enabled = true;
         } else if cap.name("dont").is_some() {
             muls_enabled = false;
-        } else {
-            if muls_enabled {
-                ans += cap.name("x").unwrap().as_str().parse::<i32>()?
-                    * cap.name("y").unwrap().as_str().parse::<i32>()?;
-            }
+        } else if muls_enabled {
+            ans += cap.name("x").unwrap().as_str().parse::<i32>()?
+                * cap.name("y").unwrap().as_str().parse::<i32>()?;
         }
     }
 
