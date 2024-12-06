@@ -42,10 +42,8 @@ fn main() -> Result<()> {
 
             if let Some(afters) = rules.get(&page) {
                 for after in afters {
-                    for preceder in update.iter().take(i) {
-                        if preceder == after {
-                            continue 'updates;
-                        }
+                    if i > 0 && update[i - 1] == *after {
+                        continue 'updates;
                     }
                 }
             }
