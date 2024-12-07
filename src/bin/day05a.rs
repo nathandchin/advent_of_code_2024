@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    io::{stdin, Read},
-};
+use std::io::{stdin, Read};
 
 use color_eyre::Result;
 
@@ -26,30 +23,13 @@ fn main() -> Result<()> {
     let mut input = String::new();
     stdin().read_to_string(&mut input)?;
 
-    let (rules_vec, updates) = parse(&input);
-    let mut rules: HashMap<i32, Vec<i32>> = HashMap::new();
-    for rule in rules_vec {
-        rules
-            .entry(rule.0)
-            .and_modify(|e| e.push(rule.1))
-            .or_insert(vec![rule.1]);
-    }
+    let (rules, updates) = parse(&input);
 
     let mut ans = 0;
-    'updates: for update in updates {
-        for i in 0..update.len() {
-            let page = update[i];
-
-            if let Some(afters) = rules.get(&page) {
-                for after in afters {
-                    if i > 0 && update[i - 1] == *after {
-                        continue 'updates;
-                    }
-                }
-            }
+    for update in updates {
+        if update.is_sorted_by(|a, b| !rules.contains(&(*b, *a))) {
+            ans += update[update.len() / 2];
         }
-        let mid = update[update.len() / 2];
-        ans += mid;
     }
 
     println!("{}", ans);
