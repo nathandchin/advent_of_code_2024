@@ -1,7 +1,4 @@
-use std::{
-    fmt::Display,
-    io::{stdin, Read},
-};
+use std::io::{stdin, Read};
 
 use color_eyre::Result;
 
@@ -12,27 +9,11 @@ struct Block {
     empty: u32,
 }
 
-impl Display for Block {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut s = String::with_capacity((self.filled + self.empty) as usize);
-        if let Some(id) = self.id {
-            let ch = char::from_digit(id, 10).unwrap();
-            for _ in 0..self.filled {
-                s.push(ch);
-            }
-        }
-
-        for _ in 0..self.empty {
-            s.push('.');
-        }
-        write!(f, "{}", s)
-    }
-}
-
 fn main() -> Result<()> {
     let mut input = String::new();
     stdin().read_to_string(&mut input)?;
 
+    // Parse
     let mut on_file = true;
     let mut id: u32 = 0;
     let mut blocks = vec![];
@@ -54,15 +35,7 @@ fn main() -> Result<()> {
         on_file = !on_file;
     }
 
-    fn pprint(blocks: &Vec<Block>) {
-        for block in blocks {
-            eprint!("{}", block);
-        }
-        eprintln!();
-    }
-
-    // pprint(&blocks);
-
+    // Iterate over chunks, left to right
     let mut idx = 0;
     while idx < blocks.len() {
         if blocks[idx].empty == 0 {
@@ -70,47 +43,42 @@ fn main() -> Result<()> {
             continue;
         }
 
-        // eprintln!("here1");
-
         // Discard empty blocks at end
         while blocks.last().unwrap().filled == 0 {
-            eprintln!("Popping at idx={}", blocks.len() - 1);
-            // pprint(&blocks);
             blocks.pop();
         }
 
-        // eprintln!("here2");
-
+        // Finished
         if idx == blocks.len() - 1 {
             break;
         }
 
         loop {
-            // dbg!(blocks[idx].id);
-            // dbg!(idx);
-            // dbg!(blocks.len());
-            // eprintln!("here3");
+            // Filled up the current empty slot, move on
             if blocks[idx].empty == 0 {
                 idx += 1;
                 break;
             }
-            // eprintln!("here4");
+
+            // Rightmost file depleted, move inward
             if blocks.last().unwrap().filled == 0 {
                 break;
             }
-            // eprintln!("here5");
 
+            // Update left block
             {
+                // Get the data we need from the left block
                 let id = blocks.last().unwrap().id;
                 let (l_id, l_empty) = {
                     let l = &blocks[idx];
                     (l.id, l.empty)
                 };
 
-                // Cleave in twain
+                // Cleave in twain - we're putting contents from two different
+                // files in the place where there was one block, so it needs to
+                // be split to hold both files' contents. Use vec::insert() to
+                // do this. Expensive but *shrug*.
                 if l_id.is_some() && l_id != id {
-                    eprintln!("Cleaving at idx={}, id={}", idx, l_id.unwrap());
-
                     let new = Block {
                         id,
                         filled: 0,
@@ -120,22 +88,22 @@ fn main() -> Result<()> {
                     idx += 1;
                     blocks.insert(idx, new);
                 }
-                let l = blocks.get_mut(idx).unwrap();
 
+                // Update left block. Whether it is unchanged or it is newly
+                // created from a split makes no difference.
+                let l = blocks.get_mut(idx).unwrap();
                 l.id = id;
                 l.empty -= 1;
                 l.filled += 1;
             }
-            // eprintln!("here6");
+
+            // Update right block
             {
                 let blocks_len = blocks.len();
                 let r = blocks.get_mut(blocks_len - 1).unwrap();
                 r.empty += 1;
                 r.filled -= 1;
             }
-            // eprintln!("here7");
-
-            // pprint(&blocks);
         }
     }
 
@@ -143,6 +111,9 @@ fn main() -> Result<()> {
     let mut pos = 0;
     let mut ans: u128 = 0;
     for block in blocks {
+        // Naively iterate. The real savings were in avoiding expanding all the
+        // files above. This checksum calculation isn't fast but it doesn't take
+        // too long for the puzzle inputs and it wastes no extra memory.
         for _ in 0..block.filled {
             ans += (pos * block.id.unwrap()) as u128;
             pos += 1;
